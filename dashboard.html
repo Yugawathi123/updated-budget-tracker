@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Budget Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>🌈 Budget Tracker Dashboard</h1>
+    <p id="welcomeUser"></p>
+    <button id="logoutBtn" class="logout">Logout</button>
+
+    <div class="setup">
+      <h2>Set Budget</h2>
+      <input type="number" id="totalBudget" placeholder="Total budget (₹)" />
+
+      <input type="text" id="newCategory" placeholder="Category name" />
+      <input type="number" id="newLimit" placeholder="Limit (₹)" />
+      <button id="addCategory">Add Category</button>
+
+      <ul id="categoryList"></ul>
+      <button id="saveBudget">Save Budget</button>
+    </div>
+
+    <div class="spend">
+      <h2>Add Expense</h2>
+      <select id="category"></select>
+      <input type="number" id="amount" placeholder="Enter amount" />
+      <button id="addExpense">Add Expense</button>
+    </div>
+
+    <div class="progress">
+      <h2>Progress</h2>
+      <div id="progressList"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
