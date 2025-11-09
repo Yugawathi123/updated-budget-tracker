@@ -1,53 +1,70 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Smart Budget Tracker</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- LOGIN PAGE -->
-  <div id="loginPage" class="login-container">
-    <h1>🔐 Login</h1>
-    <input type="text" id="username" placeholder="Enter your username" />
-    <input type="password" id="password" placeholder="Enter your password" />
-    <button onclick="login()">Login</button>
-    <p id="loginMessage"></p>
+  <!-- LOGIN -->
+  <div id="loginPage" class="login-card">
+    <h1>🔐 Smart Budget Tracker</h1>
+    <input id="loginUsername" placeholder="Username (email or name)" />
+    <input id="loginPassword" type="password" placeholder="Password" />
+    <div class="row">
+      <button id="loginBtn">Login / Register</button>
+    </div>
+    <p class="muted">New user? Enter username & password and click Login to register.</p>
+    <p id="loginMsg" class="error"></p>
   </div>
 
   <!-- MAIN APP -->
-  <div id="mainApp" class="container hidden">
-    <h1>💰 Smart Budget Tracker</h1>
-    <p id="welcomeUser"></p>
+  <div id="app" class="app hidden">
+    <header>
+      <h1>💰 Smart Budget Tracker</h1>
+      <div id="welcome" class="muted">Welcome!</div>
+      <div class="top-actions">
+        <button id="logoutBtn" class="danger">Logout</button>
+      </div>
+    </header>
 
-    <section class="budget-section">
-      <h2>Set Your Total Budget</h2>
-      <input type="number" id="totalBudget" placeholder="Enter total monthly budget (₹)">
-      <button onclick="setBudget()">Save Budget</button>
-      <p id="budgetDisplay"></p>
-    </section>
+    <main>
+      <section class="card">
+        <h2>Set Your Total Budget</h2>
+        <input id="totalBudget" type="number" placeholder="Enter total monthly budget (₹)" />
+        <div class="row">
+          <button id="saveBudgetBtn" class="primary">Save Budget</button>
+          <button id="clearMonthBtn" class="secondary">Reset Limits</button>
+        </div>
+        <p id="budgetInfo" class="muted"></p>
+      </section>
 
-    <section class="category-section">
-      <h2>Add Category & Limit</h2>
-      <input type="text" id="categoryName" placeholder="Category name (e.g., Food)">
-      <input type="number" id="categoryLimit" placeholder="Category limit (₹)">
-      <button onclick="addCategory()">Add Category</button>
-      <button class="reset-btn" onclick="resetLimits()">🔄 Reset Limits</button>
-    </section>
+      <section class="card">
+        <h2>Add Category & Limit</h2>
+        <input id="categoryName" placeholder="Category name (e.g., Food)" />
+        <input id="categoryLimit" type="number" placeholder="Category limit (₹)" />
+        <div class="row">
+          <button id="addCategoryBtn" class="primary">Add Category</button>
+        </div>
+        <div id="categoriesContainer" class="list"></div>
+      </section>
 
-    <section class="expense-section">
-      <h2>Add Expense</h2>
-      <select id="expenseCategory"></select>
-      <input type="number" id="expenseAmount" placeholder="Enter expense amount (₹)">
-      <button onclick="addExpense()">Add Expense</button>
-    </section>
+      <section class="card">
+        <h2>Add Expense</h2>
+        <select id="expenseCategory"><option value="">— Add category first —</option></select>
+        <input id="expenseAmount" type="number" placeholder="Enter expense amount (₹)" />
+        <div class="row">
+          <button id="addExpenseBtn" class="primary">Add Expense</button>
+        </div>
+      </section>
 
-    <section class="categories-display">
-      <h2>Spending Overview</h2>
-      <div id="categoriesList"></div>
-    </section>
+      <section class="card summary-card">
+        <h2>📊 Monthly Summary</h2>
+        <div id="summary"></div>
+        <p id="lastUpdated" class="muted small"></p>
+      </section>
+    </main>
   </div>
 
   <script src="script.js"></script>

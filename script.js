@@ -1,172 +1,274 @@
-let totalBudget = 0;
-let categories = {};
-let spent = {};
-let currentUser = "";
+// Monthly per-user storage smart budget tracker
+// Keying by username + month (YYYY-MM) so each month is separate
+const loginPage = document.getElementById('loginPage');
+const app = document.getElementById('app');
+const loginMsg = document.getElementById('loginMsg');
 
-// LOGIN FUNCTIONALITY
-function login() {
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const message = document.getElementById("loginMessage");
+const loginUsername = document.getElementById('loginUsername');
+const loginPassword = document.getElementById('loginPassword');
+const loginBtn = document.getElementById('loginBtn');
 
-  if (!username || !password) {
-    message.innerText = "Please enter both username and password.";
-    return;
+const welcome = document.getElementById('welcome');
+const logoutBtn = document.getElementById('logoutBtn');
+
+const totalBudgetInput = document.getElementById('totalBudget');
+const saveBudgetBtn = document.getElementById('saveBudgetBtn');
+const clearMonthBtn = document.getElementById('clearMonthBtn');
+
+const categoryNameInput = document.getElementById('categoryName');
+const categoryLimitInput = document.getElementById('categoryLimit');
+const addCategoryBtn = document.getElementById('addCategoryBtn');
+const categoriesContainer = document.getElementById('categoriesContainer');
+
+const expenseCategory = document.getElementById('expenseCategory');
+const expenseAmount = document.getElementById('expenseAmount');
+const addExpenseBtn = document.getElementById('addExpenseBtn');
+
+const summaryDiv = document.getElementById('summary');
+const lastUpdatedP = document.getElementById('lastUpdated');
+const budgetInfo = document.getElementById('budgetInfo');
+
+let username = null;
+let monthKey = null; // YYYY-MM
+let storageKey = null; // budget_{username}_{YYYY-MM}
+let state = {
+  total: 0,
+  categories: {}, // {name: limit}
+  expenses: {},   // {name: spent}
+  lastUpdated: null
+};
+
+// --- helpers
+function getCurrentMonthKey(){
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  return `${yyyy}-${mm}`;
+}
+function storageKeyFor(user, month){ return `budget_${user}_${month}`; }
+function saveState(){
+  localStorage.setItem(storageKey, JSON.stringify(state));
+}
+function loadState(){
+  const raw = localStorage.getItem(storageKey);
+  if(raw){
+    try{ state = JSON.parse(raw); } catch(e){ console.error(e); }
+  } else {
+    // reset base state
+    state = { total:0, categories:{}, expenses:{}, lastUpdated:null };
   }
+}
 
-  const savedUsers = JSON.parse(localStorage.getItem("users")) || {};
+// --- login/register
+loginBtn.addEventListener('click', () => {
+  loginMsg.textContent = '';
+  const user = loginUsername.value.trim();
+  const pass = loginPassword.value.trim();
+  if(!user || !pass){ loginMsg.textContent = 'Please enter username and password'; return; }
 
-  if (savedUsers[username]) {
-    if (savedUsers[username].password !== password) {
-      message.innerText = "Incorrect password!";
+  // simple user store (passwords stored in localStorage; for demo only)
+  const usersRaw = localStorage.getItem('users_db');
+  const users = usersRaw ? JSON.parse(usersRaw) : {};
+  if(users[user]){
+    if(users[user].password !== pass){
+      loginMsg.textContent = 'Incorrect password';
       return;
     }
   } else {
-    savedUsers[username] = { password };
-    localStorage.setItem("users", JSON.stringify(savedUsers));
+    // register new
+    users[user] = { password: pass };
+    localStorage.setItem('users_db', JSON.stringify(users));
   }
 
-  currentUser = username;
-  message.innerText = "";
-  document.getElementById("loginPage").classList.add("hidden");
-  document.getElementById("mainApp").classList.remove("hidden");
-  document.getElementById("welcomeUser").innerText = `👋 Welcome, ${username}!`;
+  username = user;
+  monthKey = getCurrentMonthKey();
+  storageKey = storageKeyFor(username, monthKey);
+  loadState();
+  showApp();
+});
 
-  loadData();
+// show app
+function showApp(){
+  loginPage.classList.add('hidden');
+  app.classList.remove('hidden');
+  welcome.textContent = `👋 Welcome, ${username}!`;
+  renderAll();
 }
 
-// SET TOTAL BUDGET
-function setBudget() {
-  const budgetInput = document.getElementById("totalBudget").value;
-  if (budgetInput === "" || budgetInput <= 0) {
-    alert("Please enter a valid total budget.");
+// logout
+logoutBtn.addEventListener('click', () => {
+  username = null;
+  monthKey = null;
+  storageKey = null;
+  loginUsername.value=''; loginPassword.value='';
+  app.classList.add('hidden');
+  loginPage.classList.remove('hidden');
+});
+
+// Save budget
+saveBudgetBtn.addEventListener('click', () => {
+  const total = Number(totalBudgetInput.value);
+  if(!total || total <= 0){ alert('Enter a valid total budget'); return; }
+
+  // ensure sum of category limits <= total
+  const sumLimits = Object.values(state.categories).reduce((a,b)=>a+(Number(b)||0),0);
+  if(sumLimits > total){
+    alert(`⚠️ Total of category limits (₹${sumLimits}) exceeds budget (₹${total}). Adjust limits first.`);
     return;
   }
-  totalBudget = parseFloat(budgetInput);
-  document.getElementById("budgetDisplay").innerText = `✅ Total Budget: ₹${totalBudget}`;
-  saveData();
+
+  state.total = total;
+  state.lastUpdated = new Date().toISOString();
+  saveState();
+  renderAll();
+  alert('✅ Total budget saved');
+});
+
+// Add category with validation
+addCategoryBtn.addEventListener('click', () => {
+  const name = (categoryNameInput.value || '').trim();
+  const limit = Number(categoryLimitInput.value);
+  if(!name) { alert('Enter category name'); return; }
+  if(!limit || limit <= 0) { alert('Enter a valid limit'); return; }
+  if(!state.total || state.total <= 0){ alert('Please save total budget first'); return; }
+
+  // check existing sum + this <= total
+  const used = Object.values(state.categories).reduce((a,b)=>a+(Number(b)||0),0);
+  if(used + limit > state.total){
+    alert(`⚠️ Adding this limit makes total limits ₹${used+limit} which exceeds budget ₹${state.total}`);
+    return;
+  }
+  if(state.categories[name]){
+    alert('Category already exists');
+    return;
+  }
+  state.categories[name] = limit;
+  state.expenses[name] = 0;
+  state.lastUpdated = new Date().toISOString();
+  saveState();
+  categoryNameInput.value=''; categoryLimitInput.value='';
+  renderAll();
+});
+
+// add expense
+addExpenseBtn.addEventListener('click', () => {
+  const cat = expenseCategory.value;
+  const amt = Number(expenseAmount.value);
+  if(!cat){ alert('Choose a category'); return; }
+  if(!amt || amt <= 0){ alert('Enter a valid amount'); return; }
+  if(!(cat in state.expenses)) state.expenses[cat] = 0;
+  state.expenses[cat] += amt;
+  state.lastUpdated = new Date().toISOString();
+  saveState();
+  expenseAmount.value='';
+  renderAll();
+
+  if(state.expenses[cat] > (state.categories[cat] || 0)){
+    alert(`⚠️ You have exceeded the limit for ${cat}`);
+  }
+});
+
+// reset limits (clear categories & expenses for month)
+clearMonthBtn.addEventListener('click', () => {
+  if(!confirm('Reset all categories & expenses for this month?')) return;
+  state.categories = {};
+  state.expenses = {};
+  state.total = 0;
+  state.lastUpdated = new Date().toISOString();
+  saveState();
+  totalBudgetInput.value = '';
+  renderAll();
+});
+
+// UI rendering
+function renderAll(){
+  loadState();
+  totalBudgetInput.value = state.total || '';
+  budgetInfo.textContent = state.total ? `Total budget set to ₹${state.total}` : 'No total budget set yet';
+  renderCategories();
+  renderExpenseSelect();
+  renderSummary();
 }
 
-// ADD CATEGORY
-function addCategory() {
-  const category = document.getElementById("categoryName").value.trim();
-  const limit = parseFloat(document.getElementById("categoryLimit").value);
-
-  if (!category || isNaN(limit) || limit <= 0) {
-    alert("Please enter a valid category name and limit.");
+function renderCategories(){
+  categoriesContainer.innerHTML = '';
+  const keys = Object.keys(state.categories);
+  if(keys.length === 0){
+    categoriesContainer.innerHTML = `<div class="muted">No categories yet. Add one above.</div>`;
     return;
   }
-
-  if (limit > totalBudget) {
-    alert("⚠️ Limit cannot exceed total budget!");
-    return;
-  }
-
-  // 🧠 NEW FEATURE: Check if adding this limit exceeds total budget
-  const totalUsed = Object.values(categories).reduce((a, b) => a + b, 0);
-  const newTotal = totalUsed + limit;
-  if (newTotal > totalBudget) {
-    alert(`⚠️ Total category limits (₹${newTotal}) exceed total budget (₹${totalBudget})!`);
-    return;
-  }
-
-  if (categories[category]) {
-    alert("This category already exists.");
-    return;
-  }
-
-  categories[category] = limit;
-  spent[category] = 0;
-  displayCategories();
-  updateExpenseDropdown();
-  saveData();
-
-  document.getElementById("categoryName").value = "";
-  document.getElementById("categoryLimit").value = "";
-}
-
-// ADD EXPENSE
-function addExpense() {
-  const category = document.getElementById("expenseCategory").value;
-  const amount = parseFloat(document.getElementById("expenseAmount").value);
-
-  if (!category || isNaN(amount) || amount <= 0) {
-    alert("Please enter a valid category and amount.");
-    return;
-  }
-
-  spent[category] += amount;
-
-  if (spent[category] > categories[category]) {
-    alert(`⚠️ You have exceeded the limit for ${category}!`);
-  }
-
-  displayCategories();
-  saveData();
-  document.getElementById("expenseAmount").value = "";
-}
-
-// DISPLAY CATEGORIES
-function displayCategories() {
-  const container = document.getElementById("categoriesList");
-  container.innerHTML = "";
-
-  Object.keys(categories).forEach(cat => {
-    const progress = (spent[cat] / categories[cat]) * 100;
-    container.innerHTML += `
-      <div class="category-card">
-        <h3>${cat}</h3>
-        <p>Limit: ₹${categories[cat]}</p>
-        <p>Spent: ₹${spent[cat]}</p>
-        <div class="progress-bar">
-          <div class="progress" style="width:${Math.min(progress, 100)}%"></div>
-        </div>
+  keys.forEach(name => {
+    const limit = state.categories[name] || 0;
+    const spent = state.expenses[name] || 0;
+    const percent = limit > 0 ? Math.min(100, Math.round((spent/limit)*100)) : 0;
+    const div = document.createElement('div');
+    div.className = 'cat-row';
+    div.innerHTML = `
+      <div class="cat-info">
+        <strong>${escapeHtml(name)}</strong>
+        <div class="muted small">Limit: ₹${limit} • Spent: ₹${spent}</div>
+        <div class="progress"><div class="fill" style="width:${percent}%"></div></div>
+      </div>
+      <div>
+        <button onclick="removeCategory('${encodeURIComponent(name)}')" style="background:#f97316;padding:8px;border-radius:8px;border:0;color:#fff">Delete</button>
       </div>
     `;
+    categoriesContainer.appendChild(div);
   });
 }
 
-// UPDATE DROPDOWN
-function updateExpenseDropdown() {
-  const dropdown = document.getElementById("expenseCategory");
-  dropdown.innerHTML = "<option value=''>Select Category</option>";
-  Object.keys(categories).forEach(cat => {
-    dropdown.innerHTML += `<option value="${cat}">${cat}</option>`;
+function removeCategory(encodedName){
+  const name = decodeURIComponent(encodedName);
+  if(!confirm(`Delete category "${name}"? This removes its limit and spent amount.`)) return;
+  delete state.categories[name];
+  delete state.expenses[name];
+  state.lastUpdated = new Date().toISOString();
+  saveState();
+  renderAll();
+}
+
+function renderExpenseSelect(){
+  expenseCategory.innerHTML = '';
+  const keys = Object.keys(state.categories);
+  if(keys.length === 0){
+    expenseCategory.innerHTML = `<option value="">— add category first —</option>`;
+    return;
+  }
+  const opt0 = document.createElement('option'); opt0.value=''; opt0.textContent='Select category'; expenseCategory.appendChild(opt0);
+  keys.forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k; opt.textContent = k;
+    expenseCategory.appendChild(opt);
   });
 }
 
-// RESET LIMITS
-function resetLimits() {
-  if (confirm("Are you sure you want to reset all limits?")) {
-    categories = {};
-    spent = {};
-    saveData();
-    displayCategories();
-    updateExpenseDropdown();
-    alert("All category limits have been reset.");
+function renderSummary(){
+  summaryDiv.innerHTML = '';
+  let totalSpent = 0;
+  const ul = document.createElement('ul');
+  ul.style.listStyle='none'; ul.style.padding='0';
+  for(const cat of Object.keys(state.categories)){
+    const limit = state.categories[cat] || 0;
+    const spent = state.expenses[cat] || 0;
+    totalSpent += spent;
+    const li = document.createElement('li');
+    li.textContent = `${cat}: ₹${spent} / ₹${limit}`;
+    ul.appendChild(li);
   }
+  const totalLine = document.createElement('div');
+  totalLine.style.marginTop='10px';
+  const remaining = (state.total || 0) - totalSpent;
+  totalLine.innerHTML = `<strong>Total spent:</strong> ₹${totalSpent} &nbsp; | &nbsp; <strong>Remaining:</strong> ₹${remaining}`;
+  summaryDiv.appendChild(ul);
+  summaryDiv.appendChild(totalLine);
+
+  lastUpdatedP.textContent = state.lastUpdated ? `Last updated: ${new Date(state.lastUpdated).toLocaleString()}` : '';
 }
 
-// SAVE & LOAD DATA
-function saveData() {
-  const data = {
-    totalBudget,
-    categories,
-    spent,
-  };
-  localStorage.setItem(`budgetData_${currentUser}`, JSON.stringify(data));
-}
+// escape html
+function escapeHtml(s){ if(!s) return ''; return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
 
-function loadData() {
-  const data = localStorage.getItem(`budgetData_${currentUser}`);
-  if (data) {
-    const saved = JSON.parse(data);
-    totalBudget = saved.totalBudget || 0;
-    categories = saved.categories || {};
-    spent = saved.spent || {};
-    if (totalBudget > 0)
-      document.getElementById("budgetDisplay").innerText = `✅ Total Budget: ₹${totalBudget}`;
-    displayCategories();
-    updateExpenseDropdown();
-  }
-}
+// init (if user already logged in - none by default)
+(function init(){
+  // nothing to auto-login; wait for user to log in
+})();

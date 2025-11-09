@@ -1,100 +1,53 @@
 
-* {
-  box-sizing: border-box;
-  font-family: "Poppins", sans-serif;
+:root{
+  --bg1:#74abe2; --bg2:#5563de;
+  --card:#ffffff; --muted:#6b7280;
+  --primary:#6c5ce7; --danger:#e74c3c; --secondary:#ffb86b;
 }
-
-body {
-  background: linear-gradient(135deg, #74b9ff, #a29bfe);
-  min-height: 100vh;
-  margin: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter, system-ui, Arial;
+  background:linear-gradient(135deg,var(--bg1),var(--bg2));
+  color:#1f2937;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  padding:28px 12px;
 }
-
-.hidden {
-  display: none;
+.hidden{display:none}
+.login-card, .app{max-width:720px;margin:0 auto}
+.login-card{
+  background:var(--card); padding:28px; border-radius:16px; box-shadow:0 8px 30px rgba(0,0,0,0.15);
+  text-align:center;
 }
-
-.container {
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  padding: 30px;
-  max-width: 600px;
-  width: 90%;
-  margin: 30px;
+.login-card input{width:92%;padding:12px;margin:10px 0;border-radius:10px;border:1px solid #e6e9ef}
+.row{display:flex;gap:12px;align-items:center}
+.row button{flex:1}
+button{
+  background:var(--primary); color:white; border:0; padding:10px 14px;border-radius:10px; cursor:pointer;
 }
-
-.login-container {
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  padding: 40px;
-  width: 350px;
-  text-align: center;
+button.primary{background:var(--primary)}
+button.secondary{background:var(--secondary); color:#111}
+button.danger{background:var(--danger)}
+button:hover{opacity:0.95}
+.muted{color:var(--muted)}
+.error{color:var(--danger);margin-top:8px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;gap:12px}
+header h1{margin:0;font-size:28px}
+.top-actions{display:flex;gap:8px}
+main{display:grid;grid-template-columns:1fr;gap:16px}
+.card{
+  background:var(--card);padding:18px;border-radius:14px;box-shadow:0 8px 20px rgba(11,20,60,0.06);
 }
-
-h1, h2 {
-  text-align: center;
-  color: #2d3436;
-}
-
-input, select {
-  width: 100%;
-  padding: 10px;
-  margin: 5px 0;
-  border: 2px solid #dfe6e9;
-  border-radius: 8px;
-}
-
-button {
-  background: #6c5ce7;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  margin-top: 10px;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-button:hover {
-  background: #341f97;
-}
-
-.reset-btn {
-  background: #d63031;
-}
-
-.reset-btn:hover {
-  background: #b71540;
-}
-
-.category-card {
-  background: #f1f2f6;
-  border-radius: 10px;
-  padding: 10px;
-  margin-bottom: 10px;
-}
-
-.progress-bar {
-  background: #dfe6e9;
-  border-radius: 8px;
-  height: 12px;
-  margin-top: 8px;
-}
-
-.progress {
-  background: #00b894;
-  height: 100%;
-  border-radius: 8px;
-  transition: width 0.3s ease;
-}
-
-#loginMessage {
-  color: #e74c3c;
-  font-weight: bold;
-  margin-top: 10px;
+input, select{padding:12px;border-radius:10px;border:1px solid #eef2ff;width:100%;margin:8px 0}
+.list{margin-top:8px}
+.cat-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;border-radius:10px;background:#f8fafc;margin-bottom:8px}
+.cat-info{flex:1}
+.progress{height:10px;background:#e6eefb;border-radius:999px;overflow:hidden;margin-top:8px}
+.progress > .fill{height:100%;background:#6c5ce7;width:0%;transition:width .35s}
+.summary-card ul{list-style:none;padding:0;margin:0}
+.small{font-size:13px}
+@media (min-width:880px){
+  main{grid-template-columns:1fr 420px}
+  .summary-card{grid-column:span 2}
 }
