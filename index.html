@@ -1,35 +1,55 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login | Budget Tracker</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Budget Tracker</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body class="login-page">
-  <div class="login-container">
-    <h1>💸 Budget Tracker Login</h1>
-    <input type="text" id="username" placeholder="Enter username" />
-    <input type="password" id="password" placeholder="Enter password" />
-    <button id="loginBtn">Login</button>
+<body>
+  <!-- LOGIN PAGE -->
+  <div id="loginPage" class="login-container">
+    <h1>🔐 Login</h1>
+    <input type="text" id="username" placeholder="Enter your username" />
+    <input type="password" id="password" placeholder="Enter your password" />
+    <button onclick="login()">Login</button>
+    <p id="loginMessage"></p>
   </div>
 
-  <script>
-    document.getElementById("loginBtn").addEventListener("click", () => {
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value.trim();
+  <!-- MAIN APP -->
+  <div id="mainApp" class="container hidden">
+    <h1>💰 Smart Budget Tracker</h1>
+    <p id="welcomeUser"></p>
 
-      if (!username || !password) {
-        alert("Please enter username and password");
-        return;
-      }
+    <section class="budget-section">
+      <h2>Set Your Total Budget</h2>
+      <input type="number" id="totalBudget" placeholder="Enter total monthly budget (₹)">
+      <button onclick="setBudget()">Save Budget</button>
+      <p id="budgetDisplay"></p>
+    </section>
 
-      // Save username in localStorage
-      localStorage.setItem("currentUser", username);
+    <section class="category-section">
+      <h2>Add Category & Limit</h2>
+      <input type="text" id="categoryName" placeholder="Category name (e.g., Food)">
+      <input type="number" id="categoryLimit" placeholder="Category limit (₹)">
+      <button onclick="addCategory()">Add Category</button>
+      <button class="reset-btn" onclick="resetLimits()">🔄 Reset Limits</button>
+    </section>
 
-      // Redirect to dashboard
-      window.location.href = "dashboard.html";
-    });
-  </script>
+    <section class="expense-section">
+      <h2>Add Expense</h2>
+      <select id="expenseCategory"></select>
+      <input type="number" id="expenseAmount" placeholder="Enter expense amount (₹)">
+      <button onclick="addExpense()">Add Expense</button>
+    </section>
+
+    <section class="categories-display">
+      <h2>Spending Overview</h2>
+      <div id="categoriesList"></div>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>

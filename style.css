@@ -1,70 +1,100 @@
+
+* {
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
 body {
-  font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #74ABE2, #5563DE);
+  background: linear-gradient(135deg, #74b9ff, #a29bfe);
+  min-height: 100vh;
   margin: 0;
-  padding: 0;
-  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hidden {
+  display: none;
 }
 
 .container {
-  background: rgba(255, 255, 255, 0.1);
-  margin: 40px auto;
-  padding: 30px;
+  background: #fff;
   border-radius: 20px;
-  width: 90%;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  padding: 30px;
   max-width: 600px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.3);
+  width: 90%;
+  margin: 30px;
+}
+
+.login-container {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  padding: 40px;
+  width: 350px;
+  text-align: center;
 }
 
 h1, h2 {
   text-align: center;
+  color: #2d3436;
 }
 
-input, select, button {
+input, select {
   width: 100%;
   padding: 10px;
   margin: 5px 0;
-  border: none;
-  border-radius: 10px;
-  outline: none;
+  border: 2px solid #dfe6e9;
+  border-radius: 8px;
 }
 
 button {
-  margin: 5px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background-color: #4CAF50;
+  background: #6c5ce7;
   color: white;
   border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  margin-top: 10px;
   cursor: pointer;
+  transition: 0.3s;
 }
 
 button:hover {
-  background-color: #45a049;
+  background: #341f97;
 }
 
-ul {
-  list-style-type: none;
-  padding: 0;
+.reset-btn {
+  background: #d63031;
 }
 
-.login-page {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+.reset-btn:hover {
+  background: #b71540;
 }
 
-.login-container {
-  background: rgba(255, 255, 255, 0.15);
-  padding: 40px;
-  border-radius: 15px;
-  text-align: center;
-  width: 300px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.3);
+.category-card {
+  background: #f1f2f6;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
 }
 
-.logout {
-  float: right;
-  background: #ff4b5c;
+.progress-bar {
+  background: #dfe6e9;
+  border-radius: 8px;
+  height: 12px;
+  margin-top: 8px;
+}
+
+.progress {
+  background: #00b894;
+  height: 100%;
+  border-radius: 8px;
+  transition: width 0.3s ease;
+}
+
+#loginMessage {
+  color: #e74c3c;
+  font-weight: bold;
+  margin-top: 10px;
 }
