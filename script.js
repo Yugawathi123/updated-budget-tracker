@@ -1,88 +1,98 @@
-let budget = { total: 0, categories: {} };
-let currentUser = localStorage.getItem("currentUser");
+let totalBudget = 0;
+let categories = {};
+let spent = {};
 
-document.addEventListener("DOMContentLoaded", () => {
-  if (!currentUser) {
-    window.location.href = "index.html";
-    return;
-  }
-
-  document.getElementById("welcomeUser").textContent = `Welcome, ${currentUser}!`;
-
-  loadUserData();
-
-  document.getElementById("logoutBtn").addEventListener("click", () => {
-    localStorage.removeItem("currentUser");
-    window.location.href = "index.html";
-  });
-
-  document.getElementById("addCategory").addEventListener("click", addCategory);
-  document.getElementById("saveBudget").addEventListener("click", saveBudget);
-  document.getElementById("addExpense").addEventListener("click", addExpense);
-});
-
-function addCategory() {
-  const name = document.getElementById("newCategory").value.trim();
-  const limit = parseFloat(document.getElementById("newLimit").value);
-  if (!name || isNaN(limit) || limit <= 0) {
-    alert("Enter valid category and limit");
-    return;
-  }
-  if (budget.categories[name]) {
-    alert("Category exists!");
-    return;
-  }
-  budget.categories[name] = { limit: limit, spent: 0 };
-  updateUI();
-  saveData();
+function setBudget() {
+    const budgetInput = document.getElementById("totalBudget").value;
+    if (budgetInput === "" || budgetInput <= 0) {
+        alert("Please enter a valid total budget.");
+        return;
+    }
+    totalBudget = parseFloat(budgetInput);
+    document.getElementById("budgetDisplay").innerText = `Total Budget: ₹${totalBudget}`;
+    alert("Total budget set successfully!");
 }
 
-function saveBudget() {
-  budget.total = parseFloat(document.getElementById("totalBudget").value);
-  saveData();
-  alert("Budget Saved!");
+function addCategory() {
+    const category = document.getElementById("categoryName").value.trim();
+    const limit = parseFloat(document.getElementById("categoryLimit").value);
+
+    if (!category || isNaN(limit) || limit <= 0) {
+        alert("Please enter a valid category name and limit.");
+        return;
+    }
+
+    if (limit > totalBudget) {
+        alert("⚠️ Limit cannot exceed total budget!");
+        return; // stop further execution
+    }
+
+    if (categories[category]) {
+        alert("This category already exists.");
+        return;
+    }
+
+    categories[category] = limit;
+    spent[category] = 0;
+    displayCategories();
+    document.getElementById("categoryName").value = "";
+    document.getElementById("categoryLimit").value = "";
 }
 
 function addExpense() {
-  const category = document.getElementById("category").value;
-  const amount = parseFloat(document.getElementById("amount").value);
-  if (!category || isNaN(amount) || amount <= 0) {
-    alert("Invalid expense");
-    return;
-  }
-  budget.categories[category].spent += amount;
-  if (budget.categories[category].spent > budget.categories[category].limit) {
-    alert(`⚠️ Limit exceeded for ${category}!`);
-  }
-  saveData();
-  updateUI();
+    const category = document.getElementById("expenseCategory").value;
+    const amount = parseFloat(document.getElementById("expenseAmount").value);
+
+    if (!category || isNaN(amount) || amount <= 0) {
+        alert("Please enter a valid category and amount.");
+        return;
+    }
+
+    spent[category] += amount;
+
+    if (spent[category] > categories[category]) {
+        alert(`⚠️ You have exceeded the limit for ${category}!`);
+    }
+
+    displayCategories();
+    document.getElementById("expenseAmount").value = "";
 }
 
-function updateUI() {
-  const catList = document.getElementById("categoryList");
-  const catSelect = document.getElementById("category");
-  const progressList = document.getElementById("progressList");
+function displayCategories() {
+    const container = document.getElementById("categoriesList");
+    container.innerHTML = "";
 
-  catList.innerHTML = "";
-  catSelect.innerHTML = "";
-  progressList.innerHTML = "";
+    Object.keys(categories).forEach(cat => {
+        const progress = (spent[cat] / categories[cat]) * 100;
+        container.innerHTML += `
+            <div class="category-card">
+                <h3>${cat}</h3>
+                <p>Limit: ₹${categories[cat]}</p>
+                <p>Spent: ₹${spent[cat]}</p>
+                <div class="progress-bar">
+                    <div class="progress" style="width:${Math.min(progress, 100)}%"></div>
+                </div>
+            </div>
+        `;
+    });
 
-  for (let cat in budget.categories) {
-    const c = budget.categories[cat];
-    catList.innerHTML += `<li>${cat}: ₹${c.limit}</li>`;
-    catSelect.innerHTML += `<option value="${cat}">${cat}</option>`;
-    progressList.innerHTML += `<p>${cat}: ₹${c.spent} / ₹${c.limit}</p>`;
-  }
+    updateExpenseDropdown();
 }
 
-function saveData() {
-  localStorage.setItem(`budget_${currentUser}`, JSON.stringify(budget));
+function updateExpenseDropdown() {
+    const dropdown = document.getElementById("expenseCategory");
+    dropdown.innerHTML = "<option value=''>Select Category</option>";
+    Object.keys(categories).forEach(cat => {
+        dropdown.innerHTML += `<option value="${cat}">${cat}</option>`;
+    });
 }
 
-function loadUserData() {
-  const data = localStorage.getItem(`budget_${currentUser}`);
-  if (data) {
-    budget = JSON.parse(data);
-    updateUI();
-  }
+function resetLimits() {
+    if (confirm("Are you sure you want to reset all limits?")) {
+        categories = {};
+        spent = {};
+        document.getElementById("categoriesList").innerHTML = "";
+        document.getElementById("expenseCategory").innerHTML = "<option value=''>Select Category</option>";
+        alert("All category limits have been reset.");
+    }
 }
